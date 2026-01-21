@@ -10,13 +10,12 @@ services:
       - key: PYTHON_VERSION
         value: "3.11.0"
 
-  # フロントエンド
-  - type: web
+  # フロントエンド（静的サイト）
+  - type: static_site
     name: kobutsu-wizard
-    runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://kobutsu-api.onrender.com
+        value: https://kobutsu-api-x1ch.onrender.com
