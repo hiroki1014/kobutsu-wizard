@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
 from .schemas import FormData
-from .pdf_generator import generate_kobutsu_pdf
+from .pdf_generator import generate_kobutsu_pdf, generate_test_pdf
 
 
 app = FastAPI(
@@ -57,6 +57,31 @@ async def generate_pdf(data: FormData):
             media_type="application/pdf",
             headers={
                 "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"PDF生成に失敗しました: {str(e)}"
+        )
+
+
+@app.get("/api/test-pdf")
+async def test_pdf():
+    """位置確認用テストPDF（全ての○を描画）"""
+    if not TEMPLATE_PATH.exists():
+        raise HTTPException(
+            status_code=500,
+            detail="テンプレートPDFが見つかりません"
+        )
+
+    try:
+        pdf_bytes = generate_test_pdf(str(TEMPLATE_PATH))
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": "attachment; filename*=UTF-8''test_all_circles.pdf"
             }
         )
     except Exception as e:

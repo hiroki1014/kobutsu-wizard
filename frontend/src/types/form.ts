@@ -196,7 +196,7 @@ export const testFormData: FormData = {
   representativeStreet: '7-8-9',
   representativePhone: '06-5555-1234',
 
-  hasWebsite: false,
+  hasWebsite: true,
   websiteUrl: 'https://www.example-shop.co.jp',
 
   submissionPrefecture: '大阪府',

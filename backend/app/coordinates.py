@@ -80,6 +80,9 @@ PHONE_Y = convert_y(474)
 # 実際の位置: 行全体 x=74.6-414.0, y=485.6-495.1、「2.しない」は「1.する」の後
 GYOSHO_SHINAI_CIRCLE = (370, convert_y(496), 415, convert_y(484))  # しない
 
+# 主として取り扱おうとする古物の区分（1ページ目）
+MAIN_ITEM_11_CIRCLE = (157, convert_y(539), 172, convert_y(526))  # 11.皮革・ゴム製品類
+
 # 代表者等（法人の場合）
 REP_TYPE_POSITIONS = {
     '1': (152, convert_y(557), 207, convert_y(544)),   # 1.代表者（1下2右）

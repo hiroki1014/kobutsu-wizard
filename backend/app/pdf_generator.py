@@ -207,6 +207,9 @@ def generate_kobutsu_pdf(data: FormData, template_path: str) -> bytes:
     # 行商: しない
     draw_circle(c, *coord.GYOSHO_SHINAI_CIRCLE)
 
+    # 主として取り扱おうとする古物の区分: 11.皮革・ゴム製品類
+    draw_circle(c, *coord.MAIN_ITEM_11_CIRCLE)
+
     # 代表者等（入力がある場合のみ）
     if data.representativeType and data.representativeLastNameKanji:
         # 種別
@@ -374,6 +377,194 @@ def generate_kobutsu_pdf(data: FormData, template_path: str) -> bytes:
         writer.add_page(page)
 
     # 結果をバイト列として返す
+    output_buffer = io.BytesIO()
+    writer.write(output_buffer)
+    output_buffer.seek(0)
+
+    return output_buffer.read()
+
+
+def generate_test_pdf(template_path: str) -> bytes:
+    """位置確認用テストPDF（全ての○とサンプルテキストを描画）"""
+
+    register_font()
+
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+
+    # ========================================
+    # ページ1: その１（基本情報）- 全ての○を描画
+    # ========================================
+
+    c.setFont('IPAGothic', 10)
+
+    # 公安委員会
+    c.drawString(coord.PUBLIC_SAFETY_COMMISSION_X, coord.PUBLIC_SAFETY_COMMISSION_Y, "大阪府")
+
+    # 申請者の氏名又は名称及び住所
+    c.drawRightString(coord.APPLICANT_INFO_X, coord.APPLICANT_INFO_Y, "大阪府大阪市北区梅田1-2-3 山田太郎")
+
+    # 許可の種類: 古物商を○で囲む
+    draw_circle(c, *coord.PERMIT_TYPE_CIRCLE)
+
+    # タイトル部の「古物市場主」に二重線
+    draw_double_line(c, *coord.TITLE_KOBUTSU_ICHIBONUSHI_DOUBLE_LINE)
+
+    # 氏名フリガナ・漢字
+    draw_kana_in_grid(c, "ヤマダ タロウ", coord.NAME_KANA_X, coord.NAME_KANA_Y)
+    c.setFont('IPAGothic', 11)
+    c.drawString(coord.NAME_KANJI_X, coord.NAME_KANJI_Y, "山田 太郎")
+
+    # 法人等の種別: 全て○
+    draw_circle(c, *coord.INDIVIDUAL_CIRCLE)  # 個人
+
+    # 生年月日の元号: 全て○
+    c.setFont('IPAGothic', 10)
+    for era_key, (x1, x2) in coord.ERA_POSITIONS.items():
+        y1, y2 = coord.ERA_CIRCLE_Y
+        draw_circle(c, x1, y1, x2, y2)
+
+    # 生年月日
+    draw_text_spaced(c, "1980", coord.BIRTH_YEAR_X, coord.BIRTH_Y, coord.BIRTH_CHAR_WIDTH)
+    draw_text_spaced(c, "03", coord.BIRTH_MONTH_X, coord.BIRTH_Y, coord.BIRTH_CHAR_WIDTH)
+    draw_text_spaced(c, "15", coord.BIRTH_DAY_X, coord.BIRTH_Y, coord.BIRTH_CHAR_WIDTH)
+
+    # 住所
+    c.drawString(coord.ADDRESS_PREF_X, coord.ADDRESS_PREF_Y, "大阪府")
+    c.drawString(coord.ADDRESS_CITY_X, coord.ADDRESS_CITY_Y, "大阪市北区梅田")
+    c.drawString(coord.ADDRESS_STREET_X, coord.ADDRESS_STREET_Y, "1-2-3")
+
+    # 電話番号
+    c.drawString(coord.PHONE_AREA_X, coord.PHONE_Y, "06")
+    c.drawString(coord.PHONE_LOCAL_X, coord.PHONE_Y, "1234")
+    c.drawString(coord.PHONE_NUMBER_X, coord.PHONE_Y, "5678")
+
+    # 行商: 両方○（位置確認用）
+    draw_circle(c, *coord.GYOSHO_SHINAI_CIRCLE)
+
+    # 主として取り扱おうとする古物の区分: 11
+    draw_circle(c, *coord.MAIN_ITEM_11_CIRCLE)
+
+    # 代表者等: 全て○
+    for rep_type, circle_coords in coord.REP_TYPE_POSITIONS.items():
+        draw_circle(c, *circle_coords)
+
+    # 代表者氏名
+    draw_kana_in_grid(c, "タナカ イチロウ", coord.REP_NAME_KANA_X, coord.REP_NAME_KANA_Y)
+    c.setFont('IPAGothic', 11)
+    c.drawString(coord.REP_NAME_KANJI_X, coord.REP_NAME_KANJI_Y, "田中 一郎")
+
+    # 代表者生年月日の元号: 全て○
+    c.setFont('IPAGothic', 10)
+    for era_key, (x1, x2) in coord.REP_ERA_POSITIONS.items():
+        y1, y2 = coord.REP_ERA_CIRCLE_Y
+        draw_circle(c, x1, y1, x2, y2)
+
+    # 代表者生年月日
+    draw_text_spaced(c, "1965", coord.REP_BIRTH_YEAR_X, coord.REP_BIRTH_Y, coord.REP_BIRTH_CHAR_WIDTH)
+    draw_text_spaced(c, "11", coord.REP_BIRTH_MONTH_X, coord.REP_BIRTH_Y, coord.REP_BIRTH_CHAR_WIDTH)
+    draw_text_spaced(c, "03", coord.REP_BIRTH_DAY_X, coord.REP_BIRTH_Y, coord.REP_BIRTH_CHAR_WIDTH)
+
+    # 代表者住所
+    c.drawString(coord.REP_PREF_X, coord.REP_PREF_Y, "大阪府")
+    c.drawString(coord.REP_CITY_X, coord.REP_CITY_Y, "大阪市中央区南船場")
+    c.drawString(coord.REP_STREET_X, coord.REP_STREET_Y, "7-8-9")
+
+    # 代表者電話番号
+    c.drawString(coord.REP_PHONE_AREA_X, coord.REP_PHONE_Y, "06")
+    c.drawString(coord.REP_PHONE_LOCAL_X, coord.REP_PHONE_Y, "5555")
+    c.drawString(coord.REP_PHONE_NUMBER_X, coord.REP_PHONE_Y, "1234")
+
+    c.showPage()
+
+    # ========================================
+    # ページ2: その２（主たる営業所）
+    # ========================================
+
+    c.setFont('IPAGothic', 10)
+
+    # 営業所あり
+    draw_circle(c, *coord.OFFICE_ARI_CIRCLE)
+
+    # 営業所名称
+    draw_kana_in_grid(c, "ヤマダショウテン", coord.OFFICE_NAME_KANA_X, coord.OFFICE_NAME_KANA_Y)
+    c.setFont('IPAGothic', 11)
+    c.drawString(coord.OFFICE_NAME_KANJI_X, coord.OFFICE_NAME_KANJI_Y, "山田商店")
+
+    # 営業所所在地
+    c.setFont('IPAGothic', 10)
+    c.drawString(coord.OFFICE_PREF_X, coord.OFFICE_PREF_Y, "大阪府")
+    c.drawString(coord.OFFICE_CITY_X, coord.OFFICE_CITY_Y, "大阪市北区梅田")
+    c.drawString(coord.OFFICE_STREET_X, coord.OFFICE_STREET_Y, "1-2-3")
+
+    # 営業所電話番号
+    c.drawString(coord.OFFICE_PHONE_AREA_X, coord.OFFICE_PHONE_Y, "06")
+    c.drawString(coord.OFFICE_PHONE_LOCAL_X, coord.OFFICE_PHONE_Y, "1234")
+    c.drawString(coord.OFFICE_PHONE_NUMBER_X, coord.OFFICE_PHONE_Y, "5678")
+
+    # 取扱品目: 02, 11
+    draw_circle(c, *coord.ITEM_02_CIRCLE)
+    draw_circle(c, *coord.ITEM_11_CIRCLE)
+
+    # 管理者氏名
+    draw_kana_in_grid(c, "スズキ ハナコ", coord.MANAGER_NAME_KANA_X, coord.MANAGER_NAME_KANA_Y)
+    c.setFont('IPAGothic', 11)
+    c.drawString(coord.MANAGER_NAME_KANJI_X, coord.MANAGER_NAME_KANJI_Y, "鈴木 花子")
+
+    # 管理者生年月日の元号: 全て○
+    c.setFont('IPAGothic', 10)
+    for era_key, (x1, x2) in coord.MANAGER_ERA_POSITIONS.items():
+        y1, y2 = coord.MANAGER_ERA_CIRCLE_Y
+        draw_circle(c, x1, y1, x2, y2)
+
+    # 管理者生年月日
+    draw_text_spaced(c, "1990", coord.MANAGER_BIRTH_YEAR_X, coord.MANAGER_BIRTH_Y, coord.MANAGER_BIRTH_CHAR_WIDTH)
+    draw_text_spaced(c, "07", coord.MANAGER_BIRTH_MONTH_X, coord.MANAGER_BIRTH_Y, coord.MANAGER_BIRTH_CHAR_WIDTH)
+    draw_text_spaced(c, "25", coord.MANAGER_BIRTH_DAY_X, coord.MANAGER_BIRTH_Y, coord.MANAGER_BIRTH_CHAR_WIDTH)
+
+    # 管理者住所
+    c.drawString(coord.MANAGER_PREF_X, coord.MANAGER_PREF_Y, "大阪府")
+    c.drawString(coord.MANAGER_CITY_X, coord.MANAGER_CITY_Y, "大阪市西区江戸堀")
+    c.drawString(coord.MANAGER_STREET_X, coord.MANAGER_STREET_Y, "4-5-6")
+
+    # 管理者電話番号
+    c.drawString(coord.MANAGER_PHONE_AREA_X, coord.MANAGER_PHONE_Y, "080")
+    c.drawString(coord.MANAGER_PHONE_LOCAL_X, coord.MANAGER_PHONE_Y, "9876")
+    c.drawString(coord.MANAGER_PHONE_NUMBER_X, coord.MANAGER_PHONE_Y, "5432")
+
+    c.showPage()
+
+    # ========================================
+    # ページ3: その３（その他の営業所）
+    # ========================================
+    c.showPage()
+
+    # ========================================
+    # ページ4: その４（ホームページ）
+    # ========================================
+
+    c.setFont('IPAGothic', 10)
+
+    # ホームページ: 両方○（位置確認用）
+    draw_circle(c, *coord.WEBSITE_USE_CIRCLE)
+    draw_circle(c, *coord.WEBSITE_NOT_USE_CIRCLE)
+
+    c.showPage()
+
+    c.save()
+
+    # テンプレートとマージ
+    buffer.seek(0)
+    overlay_pdf = PdfReader(buffer)
+    original_pdf = PdfReader(template_path)
+
+    writer = PdfWriter()
+
+    for i, page in enumerate(original_pdf.pages):
+        if i < len(overlay_pdf.pages):
+            page.merge_page(overlay_pdf.pages[i])
+        writer.add_page(page)
+
     output_buffer = io.BytesIO()
     writer.write(output_buffer)
     output_buffer.seek(0)
