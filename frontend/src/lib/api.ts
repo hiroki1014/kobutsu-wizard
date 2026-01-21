@@ -1,6 +1,6 @@
 import type { FormData } from '../types/form';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export async function generatePdf(data: FormData): Promise<Blob> {
   const response = await fetch(`${API_BASE}/api/generate-pdf`, {
