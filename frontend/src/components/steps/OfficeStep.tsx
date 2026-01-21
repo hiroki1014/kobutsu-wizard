@@ -36,9 +36,9 @@ export function OfficeStep({ formData, updateField }: OfficeStepProps) {
     <div>
       <h2 className="text-xl font-bold mb-6">主たる営業所</h2>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
         <p className="text-sm text-blue-800">
-          <strong>取扱品目（固定）:</strong> 衣類、皮革・ゴム製品類
+          <strong>営業所名称について:</strong> ○○商店、○○屋など自由に設定できます。決まらない場合は個人名でもOK
         </p>
       </div>
 

@@ -9,6 +9,7 @@ export const PREFECTURES = [
 ] as const;
 
 export const ERA_OPTIONS = [
+  { value: 'seireki', label: '西暦' },
   { value: 'showa', label: '昭和' },
   { value: 'heisei', label: '平成' },
   { value: 'reiwa', label: '令和' },

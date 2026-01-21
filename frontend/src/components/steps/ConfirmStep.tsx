@@ -123,15 +123,6 @@ export function ConfirmStep({ formData }: ConfirmStepProps) {
           </dl>
         </section>
 
-        <section className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h3 className="font-bold text-yellow-800 mb-2">固定項目（自動入力）</h3>
-          <ul className="text-sm text-yellow-700 space-y-1">
-            <li>・許可の種類: 古物商（古物市場主は二重線で消去）</li>
-            <li>・法人等の種別: {formData.applicantType === 'individual' ? '個人' : getCorporationTypeLabel(formData.corporationType)}</li>
-            <li>・行商: しない</li>
-            <li>・営業所形態: 営業所あり</li>
-          </ul>
-        </section>
       </div>
     </div>
   );
