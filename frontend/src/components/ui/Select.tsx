@@ -10,10 +10,11 @@ interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onC
   required?: boolean;
   options: readonly (Option | string)[];
   error?: string;
+  help?: string;
   onChange?: (value: string) => void;
 }
 
-export function Select({ label, required, options, error, onChange, ...props }: SelectProps) {
+export function Select({ label, required, options, error, help, onChange, ...props }: SelectProps) {
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -38,6 +39,7 @@ export function Select({ label, required, options, error, onChange, ...props }: 
           );
         })}
       </select>
+      {help && <p className="mt-1 text-xs text-gray-500">{help}</p>}
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
   );
