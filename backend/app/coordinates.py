@@ -27,6 +27,11 @@ TITLE_KOBUTSU_ICHIBONUSHI_DOUBLE_LINE = (170, 283, convert_y(170))  # タイト�
 PUBLIC_SAFETY_COMMISSION_X = 72
 PUBLIC_SAFETY_COMMISSION_Y = convert_y(232)
 
+# 申請者の氏名又は名称及び住所（セクション見出し直下）
+# 「住所 氏名」形式で表示（右端揃え）
+APPLICANT_INFO_X = 560  # 右端基準
+APPLICANT_INFO_Y = convert_y(265)  # 30上
+
 # 氏名
 NAME_KANA_X = 202
 NAME_KANA_Y = convert_y(315)

@@ -158,6 +158,11 @@ def generate_kobutsu_pdf(data: FormData, template_path: str) -> bytes:
     # 公安委員会（提出先）
     c.drawString(coord.PUBLIC_SAFETY_COMMISSION_X, coord.PUBLIC_SAFETY_COMMISSION_Y, data.submissionPrefecture)
 
+    # 申請者の氏名又は名称及び住所（セクション見出し直下、右端揃え）
+    full_address = f"{data.prefecture}{data.city}{data.street}"
+    applicant_info = f"{full_address} {data.nameKanji}"
+    c.drawRightString(coord.APPLICANT_INFO_X, coord.APPLICANT_INFO_Y, applicant_info)
+
     # 許可の種類: 古物商を○で囲む
     draw_circle(c, *coord.PERMIT_TYPE_CIRCLE)
 
