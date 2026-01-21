@@ -19,6 +19,7 @@ from .schemas import FormData
 # ============================================
 
 FONT_PATHS = [
+    str(Path(__file__).parent.parent / 'fonts' / 'ipag.ttf'),  # リポジトリ内のフォント
     '/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf',
     '/usr/share/fonts/truetype/ipafont-gothic/ipag.ttf',
     '/usr/share/fonts/ipafont-gothic/ipag.ttf',
