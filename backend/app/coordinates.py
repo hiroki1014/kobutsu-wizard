@@ -15,7 +15,7 @@ def convert_y(pdfplumber_y: float) -> float:
 # ============================================
 
 # 許可の種類（真円で番号だけ）
-PERMIT_TYPE_CIRCLE = (172, convert_y(297) - 6, 190, convert_y(297) + 12)  # 古物商の「1」を囲む
+PERMIT_TYPE_CIRCLE = (152, convert_y(297) - 6, 170, convert_y(297) + 12)  # 古物商の「1」を囲む（20左）
 
 # タイトル部の「古物市場主」に二重線（申請書タイトル）
 # 実際の位置: x=170.7-282.3, y=163.2-176.6
@@ -40,7 +40,7 @@ NAME_KANJI_Y = convert_y(343)  # 1上
 
 # 法人等の種別（真円で番号だけ）
 # 実際の位置: 行全体 x=71.6-559.7, y=364.0-373.4、「6.個人」は右端
-INDIVIDUAL_CIRCLE = (533, convert_y(375), 548, convert_y(360))  # 個人の「6」を囲む
+INDIVIDUAL_CIRCLE = (515, convert_y(375), 530, convert_y(360))  # 個人の「6」を囲む（18左）
 
 # 元号の位置（生年月日欄の元号を丸で囲む）
 # 実際の位置: 昭和 x=199.6-210.1, 平成 x=217.0-227.6, 令和 x=234.7-245.2, y=380.3-387.0
@@ -78,16 +78,16 @@ PHONE_Y = convert_y(474)
 
 # 行商（真円で番号だけ）
 # 実際の位置: 行全体 x=74.6-414.0, y=485.6-495.1、「2.しない」は「1.する」の後
-GYOSHO_SHINAI_CIRCLE = (385, convert_y(496), 400, convert_y(481))  # 「2」を囲む
+GYOSHO_SHINAI_CIRCLE = (358, convert_y(497), 373, convert_y(482))  # 「2」を囲む（1下27左）
 
 # 主として取り扱おうとする古物の区分（1ページ目、真円で番号だけ）
-MAIN_ITEM_11_CIRCLE = (157, convert_y(541), 172, convert_y(526))  # 「11」を囲む
+MAIN_ITEM_11_CIRCLE = (156, convert_y(539), 171, convert_y(524))  # 「11」を囲む（2上1左）
 
 # 代表者等（法人の場合、真円で番号だけ）
 REP_TYPE_POSITIONS = {
-    '1': (152, convert_y(557), 167, convert_y(542)),   # 「1」を囲む
-    '2': (217, convert_y(557), 232, convert_y(542)),   # 「2」を囲む
-    '3': (267, convert_y(557), 282, convert_y(542)),   # 「3」を囲む
+    '1': (153, convert_y(557), 168, convert_y(542)),   # 「1」代表者を囲む
+    '2': (223, convert_y(557), 238, convert_y(542)),   # 「2」役員を囲む（+1右）
+    '3': (293, convert_y(557), 308, convert_y(542)),   # 「3」法定代理人を囲む（+2右）
 }
 REP_NAME_KANA_X = 201  # 1右
 REP_NAME_KANA_Y = convert_y(569)  # 1下

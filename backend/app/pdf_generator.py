@@ -114,6 +114,20 @@ def draw_double_line(c: canvas.Canvas, x_start: float, x_end: float, y: float,
     c.line(x_start, y - gap, x_end, y - gap)
 
 
+def draw_dot_grid(c: canvas.Canvas, interval: float = 10):
+    """全面ドットグリッドを描画（テスト用）"""
+    width, height = A4  # 595.276 x 841.890
+    c.setFillColorRGB(0.7, 0.7, 0.7)  # 薄いグレー
+
+    x = 0
+    while x <= width:
+        y = 0
+        while y <= height:
+            c.circle(x, y, 0.5, stroke=0, fill=1)
+            y += interval
+        x += interval
+
+
 def parse_phone(phone: str) -> tuple[str, str, str]:
     """電話番号をパースして3分割"""
     # ハイフンがある場合はそれで分割
@@ -396,6 +410,7 @@ def generate_test_pdf(template_path: str) -> bytes:
     # ページ1: その１（基本情報）- 全ての○を描画
     # ========================================
 
+    draw_dot_grid(c)  # ドットグリッド
     c.setFont('IPAGothic', 10)
 
     # 公安委員会
@@ -481,6 +496,7 @@ def generate_test_pdf(template_path: str) -> bytes:
     # ページ2: その２（主たる営業所）
     # ========================================
 
+    draw_dot_grid(c)  # ドットグリッド
     c.setFont('IPAGothic', 10)
 
     # 営業所あり
@@ -537,12 +553,14 @@ def generate_test_pdf(template_path: str) -> bytes:
     # ========================================
     # ページ3: その３（その他の営業所）
     # ========================================
+    draw_dot_grid(c)  # ドットグリッド
     c.showPage()
 
     # ========================================
     # ページ4: その４（ホームページ）
     # ========================================
 
+    draw_dot_grid(c)  # ドットグリッド
     c.setFont('IPAGothic', 10)
 
     # ホームページ: 両方○（位置確認用）
