@@ -2,6 +2,7 @@
 
 import io
 import unicodedata
+from datetime import date
 from pathlib import Path
 
 from reportlab.pdfgen import canvas
@@ -60,6 +61,14 @@ def separate_dakuten(text: str) -> list[str]:
         for c in decomposed:
             result.append(c)
     return result
+
+
+def katakana_to_hiragana(text: str) -> str:
+    """カタカナをひらがなに変換"""
+    return ''.join(
+        chr(ord(c) - 0x60) if 'ァ' <= c <= 'ン' else c
+        for c in text
+    )
 
 
 def to_halfwidth_kana(char: str) -> str:
@@ -389,6 +398,317 @@ def generate_kobutsu_pdf(data: FormData, template_path: str) -> bytes:
         if i < len(overlay_pdf.pages):
             page.merge_page(overlay_pdf.pages[i])
         writer.add_page(page)
+
+    # 結果をバイト列として返す
+    output_buffer = io.BytesIO()
+    writer.write(output_buffer)
+    output_buffer.seek(0)
+
+    return output_buffer.read()
+
+
+# ============================================
+# 年齢計算
+# ============================================
+
+ERA_TO_SEIREKI = {
+    'meiji': 1867,
+    'taisho': 1911,
+    'showa': 1925,
+    'heisei': 1988,
+    'reiwa': 2018,
+    'seireki': 0,
+}
+
+
+def calculate_age(birth_era: str, birth_year: str, birth_month: str, birth_day: str) -> int:
+    """生年月日から年齢を計算"""
+    try:
+        era_key = birth_era.lower()
+        base_year = ERA_TO_SEIREKI.get(era_key, 0)
+        birth_year_int = base_year + int(birth_year)
+        birth_month_int = int(birth_month)
+        birth_day_int = int(birth_day)
+
+        today = date.today()
+        age = today.year - birth_year_int
+
+        # 誕生日がまだ来ていない場合は1歳引く
+        if (today.month, today.day) < (birth_month_int, birth_day_int):
+            age -= 1
+
+        return age
+    except (ValueError, TypeError):
+        return 0
+
+
+def era_to_wareki_year(birth_era: str, birth_year: str) -> str:
+    """元号と年から和暦の年を返す（西暦の場合は和暦に変換）"""
+    try:
+        era_key = birth_era.lower()
+        if era_key == 'seireki':
+            # 西暦から和暦に変換
+            seireki_year = int(birth_year)
+            if seireki_year >= 2019:
+                return str(seireki_year - 2018)  # 令和
+            elif seireki_year >= 1989:
+                return str(seireki_year - 1988)  # 平成
+            elif seireki_year >= 1926:
+                return str(seireki_year - 1925)  # 昭和
+            elif seireki_year >= 1912:
+                return str(seireki_year - 1911)  # 大正
+            else:
+                return str(seireki_year - 1867)  # 明治
+        else:
+            return birth_year
+    except (ValueError, TypeError):
+        return birth_year
+
+
+def seireki_to_wareki_era(birth_era: str, birth_year: str) -> str:
+    """西暦から和暦の元号を返す"""
+    try:
+        era_key = birth_era.lower()
+        if era_key == 'seireki':
+            seireki_year = int(birth_year)
+            if seireki_year >= 2019:
+                return 'reiwa'
+            elif seireki_year >= 1989:
+                return 'heisei'
+            elif seireki_year >= 1926:
+                return 'showa'
+            elif seireki_year >= 1912:
+                return 'taisho'
+            else:
+                return 'meiji'
+        else:
+            return era_key
+    except (ValueError, TypeError):
+        return era_key
+
+
+# ============================================
+# 誓約書PDF生成
+# ============================================
+
+def generate_seiyakusho_overlay(data: FormData, is_manager: bool = False) -> io.BytesIO:
+    """誓約書のオーバーレイPDFを生成
+
+    Args:
+        data: フォームデータ
+        is_manager: True=管理者用, False=申請者用
+    """
+    register_font()
+
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    c.setFont('IPAGothic', 10)
+
+    # 座標を選択（管理者用は別座標）
+    if is_manager:
+        pref_y = coord.SEIYAKU_KANRI_PREFECTURE_Y
+        addr_y = coord.SEIYAKU_KANRI_ADDRESS_Y
+        name_y = coord.SEIYAKU_KANRI_NAME_Y
+    else:
+        pref_y = coord.SEIYAKU_PREFECTURE_Y
+        addr_y = coord.SEIYAKU_ADDRESS_Y
+        name_y = coord.SEIYAKU_NAME_Y
+
+    # 公安委員会名（都道府県）- 右揃え
+    c.drawRightString(coord.SEIYAKU_PREFECTURE_X, pref_y, data.submissionPrefecture)
+
+    # 署名日は空欄（提出時に記入）
+
+    # 住所・氏名
+    if is_manager and not data.managerSameAsApplicant:
+        address = f"{data.managerPrefecture or ''}{data.managerCity or ''}{data.managerStreet or ''}"
+        name = f"{data.managerLastNameKanji or ''} {data.managerFirstNameKanji or ''}"
+    else:
+        address = f"{data.prefecture}{data.city}{data.street}"
+        name = data.nameKanji
+
+    c.drawString(coord.SEIYAKU_ADDRESS_X, addr_y, address)
+    c.drawString(coord.SEIYAKU_NAME_X, name_y, name)
+
+    c.showPage()
+    c.save()
+
+    buffer.seek(0)
+    return buffer
+
+
+# ============================================
+# 略歴書PDF生成
+# ============================================
+
+def generate_ryakurekisyo_overlay(data: FormData, is_manager: bool = False) -> io.BytesIO:
+    """略歴書のオーバーレイPDFを生成
+
+    Args:
+        data: フォームデータ
+        is_manager: True=管理者用, False=申請者用
+    """
+    register_font()
+
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    c.setFont('IPAGothic', 10)
+
+    # 対象者のデータを選択
+    if is_manager and not data.managerSameAsApplicant:
+        kana = f"{data.managerLastNameKana or ''} {data.managerFirstNameKana or ''}"
+        name = f"{data.managerLastNameKanji or ''} {data.managerFirstNameKanji or ''}"
+        birth_era = data.managerBirthEra or 'heisei'
+        birth_year = data.managerBirthYear or ''
+        birth_month = data.managerBirthMonth or ''
+        birth_day = data.managerBirthDay or ''
+        address = f"{data.managerPrefecture or ''}{data.managerCity or ''}{data.managerStreet or ''}"
+        career_history = data.managerCareerHistory or []
+    else:
+        kana = data.nameKana
+        name = data.nameKanji
+        birth_era = data.birthEra
+        birth_year = data.birthYear
+        birth_month = data.birthMonth
+        birth_day = data.birthDay
+        address = f"{data.prefecture}{data.city}{data.street}"
+        career_history = data.careerHistory or []
+
+    # ふりがな（略歴書はひらがな表記）
+    kana_hiragana = katakana_to_hiragana(kana)
+    c.drawString(coord.RYAKUREKI_KANA_X, coord.RYAKUREKI_KANA_Y, kana_hiragana)
+
+    # 氏名
+    c.setFont('IPAGothic', 11)
+    c.drawString(coord.RYAKUREKI_NAME_X, coord.RYAKUREKI_NAME_Y, name)
+    c.setFont('IPAGothic', 10)
+
+    # 生年月日（西暦）- 略歴書は右揃え、0埋めなし
+    c.drawRightString(coord.RYAKUREKI_BIRTH_YEAR_X, coord.RYAKUREKI_BIRTH_Y, birth_year or '')
+    c.drawRightString(coord.RYAKUREKI_BIRTH_MONTH_X, coord.RYAKUREKI_BIRTH_Y, birth_month or '')
+    c.drawRightString(coord.RYAKUREKI_BIRTH_DAY_X, coord.RYAKUREKI_BIRTH_Y, birth_day or '')
+
+    # 年齢
+    age = calculate_age(birth_era, birth_year, birth_month, birth_day)
+    c.drawString(coord.RYAKUREKI_AGE_X, coord.RYAKUREKI_AGE_Y, str(age))
+
+    # 住所
+    c.drawString(coord.RYAKUREKI_ADDRESS_X, coord.RYAKUREKI_ADDRESS_Y, address)
+
+    # 職歴等（最大6行 + 「現在に至る」）
+    for i, entry in enumerate(career_history[:6]):
+        y = coord.RYAKUREKI_CAREER_START_Y - (i * coord.RYAKUREKI_CAREER_LINE_HEIGHT)
+        # 期間（年・月）- 右揃え
+        c.drawRightString(coord.RYAKUREKI_CAREER_YEAR_X, y, entry.year)
+        c.drawRightString(coord.RYAKUREKI_CAREER_MONTH_X, y, entry.month)
+        # 内容 - 左揃え
+        c.drawString(coord.RYAKUREKI_CAREER_CONTENT_X, y, entry.content)
+
+    # 7行目に「現在に至る」を自動追加（5下）
+    y = coord.RYAKUREKI_CAREER_START_Y - (6 * coord.RYAKUREKI_CAREER_LINE_HEIGHT) - 5
+    c.drawString(coord.RYAKUREKI_CAREER_CONTENT_X, y, '現在に至る')
+
+    # 署名日は空欄（提出時に記入）
+
+    # 署名（氏名）
+    c.drawString(coord.RYAKUREKI_SIGN_NAME_X, coord.RYAKUREKI_SIGN_NAME_Y, name)
+
+    c.showPage()
+    c.save()
+
+    buffer.seek(0)
+    return buffer
+
+
+# ============================================
+# 全書類結合PDF生成
+# ============================================
+
+def merge_overlay_single_page(template_path: str, overlay_buffer: io.BytesIO) -> any:
+    """テンプレートPDFにオーバーレイをマージして1ページを返す"""
+    overlay_pdf = PdfReader(overlay_buffer)
+    template_pdf = PdfReader(template_path)
+
+    page = template_pdf.pages[0]
+    if len(overlay_pdf.pages) > 0:
+        page.merge_page(overlay_pdf.pages[0])
+
+    return page
+
+
+def generate_full_application_pdf(
+    data: FormData,
+    shinsei_template_path: str,
+    seiyaku_kojin_template_path: str,
+    seiyaku_kanrisha_template_path: str,
+    ryakureki_template_path: str,
+    with_grid: bool = False
+) -> bytes:
+    """全書類を結合した完全版PDFを生成
+
+    構成:
+    - 申請者と管理者が同一の場合（7ページ）:
+      1-4: 古物商許可申請書その1〜4
+      5: 誓約書（申請者用）
+      6: 略歴書（申請者用）
+      7: 誓約書（管理者用）
+
+    - 申請者と管理者が異なる場合（8ページ）:
+      1-4: 古物商許可申請書その1〜4
+      5: 誓約書（申請者用）
+      6: 略歴書（申請者用）
+      7: 誓約書（管理者用）
+      8: 略歴書（管理者用）
+
+    Args:
+        with_grid: True=ドットグリッド付き（座標調整用）
+    """
+    register_font()
+    writer = PdfWriter()
+
+    def create_grid_page():
+        """ドットグリッドのページを生成"""
+        grid_buffer = io.BytesIO()
+        grid_canvas = canvas.Canvas(grid_buffer, pagesize=A4)
+        draw_dot_grid(grid_canvas)
+        grid_canvas.showPage()
+        grid_canvas.save()
+        grid_buffer.seek(0)
+        grid_pdf = PdfReader(grid_buffer)
+        return grid_pdf.pages[0]
+
+    def add_page_with_optional_grid(page):
+        """ページを追加（with_grid=Trueの場合はグリッドもマージ）"""
+        if with_grid:
+            page.merge_page(create_grid_page())
+        writer.add_page(page)
+
+    # 1. 許可申請書（4ページ）
+    shinsei_pdf = generate_kobutsu_pdf(data, shinsei_template_path)
+    shinsei_reader = PdfReader(io.BytesIO(shinsei_pdf))
+    for page in shinsei_reader.pages:
+        add_page_with_optional_grid(page)
+
+    # 2. 申請者用誓約書
+    seiyaku_applicant_overlay = generate_seiyakusho_overlay(data, is_manager=False)
+    seiyaku_applicant_page = merge_overlay_single_page(seiyaku_kojin_template_path, seiyaku_applicant_overlay)
+    add_page_with_optional_grid(seiyaku_applicant_page)
+
+    # 3. 申請者用略歴書
+    ryakureki_applicant_overlay = generate_ryakurekisyo_overlay(data, is_manager=False)
+    ryakureki_applicant_page = merge_overlay_single_page(ryakureki_template_path, ryakureki_applicant_overlay)
+    add_page_with_optional_grid(ryakureki_applicant_page)
+
+    # 4. 管理者用誓約書（常に出力）
+    seiyaku_manager_overlay = generate_seiyakusho_overlay(data, is_manager=True)
+    seiyaku_manager_page = merge_overlay_single_page(seiyaku_kanrisha_template_path, seiyaku_manager_overlay)
+    add_page_with_optional_grid(seiyaku_manager_page)
+
+    # 5. 管理者用略歴書（管理者が申請者と異なる場合のみ）
+    if not data.managerSameAsApplicant:
+        ryakureki_manager_overlay = generate_ryakurekisyo_overlay(data, is_manager=True)
+        ryakureki_manager_page = merge_overlay_single_page(ryakureki_template_path, ryakureki_manager_overlay)
+        add_page_with_optional_grid(ryakureki_manager_page)
 
     # 結果をバイト列として返す
     output_buffer = io.BytesIO()

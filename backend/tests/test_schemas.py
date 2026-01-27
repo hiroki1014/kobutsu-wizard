@@ -3,7 +3,22 @@
 import pytest
 from pydantic import ValidationError
 
-from app.schemas import FormData
+from app.schemas import FormData, CareerEntry
+
+
+class TestCareerEntry:
+    """CareerEntryスキーマのテスト"""
+
+    def test_career_entry_valid(self):
+        """正常なデータでCareerEntry作成成功"""
+        entry = CareerEntry(
+            year="2020",
+            month="4",
+            content="株式会社テスト 入社"
+        )
+        assert entry.year == "2020"
+        assert entry.month == "4"
+        assert entry.content == "株式会社テスト 入社"
 
 
 class TestFormData:
@@ -13,8 +28,10 @@ class TestFormData:
         """正常なデータでFormData作成成功"""
         data = FormData(
             applicantType="individual",
-            nameKana="ヤマダ タロウ",
-            nameKanji="山田 太郎",
+            lastNameKanji="山田",
+            firstNameKanji="太郎",
+            lastNameKana="ヤマダ",
+            firstNameKana="タロウ",
             birthEra="heisei",
             birthYear="5",
             birthMonth="3",
@@ -28,16 +45,12 @@ class TestFormData:
             officeNameKanji="山田商店",
             managerSameAsApplicant=True,
             hasWebsite=False,
-            applicationEra="reiwa",
-            applicationYear="7",
-            applicationMonth="1",
-            applicationDay="15",
             submissionPrefecture="東京都",
         )
 
         assert data.applicantType == "individual"
-        assert data.nameKana == "ヤマダ タロウ"
-        assert data.nameKanji == "山田 太郎"
+        assert data.lastNameKana == "ヤマダ"
+        assert data.lastNameKanji == "山田"
         assert data.birthEra == "heisei"
         assert data.prefecture == "東京都"
         assert data.officeSameAsAddress is True
@@ -48,8 +61,10 @@ class TestFormData:
         """最小限の必須フィールドで作成成功"""
         data = FormData(
             applicantType="individual",
-            nameKana="テスト",
-            nameKanji="テスト",
+            lastNameKanji="テスト",
+            firstNameKanji="太郎",
+            lastNameKana="テスト",
+            firstNameKana="タロウ",
             birthEra="reiwa",
             birthYear="1",
             birthMonth="1",
@@ -60,9 +75,6 @@ class TestFormData:
             phone="0312345678",
             officeNameKana="テスト",
             officeNameKanji="テスト",
-            applicationYear="7",
-            applicationMonth="1",
-            applicationDay="1",
             submissionPrefecture="東京都",
         )
 
@@ -71,15 +83,16 @@ class TestFormData:
         assert data.officeSameAsAddress is True
         assert data.managerSameAsApplicant is True
         assert data.hasWebsite is False
-        assert data.applicationEra == "reiwa"
 
     def test_form_data_missing_required(self):
         """必須フィールド欠落でValidationError"""
         with pytest.raises(ValidationError) as exc_info:
             FormData(
                 applicantType="individual",
-                # nameKana is missing
-                nameKanji="山田 太郎",
+                # lastNameKana is missing
+                lastNameKanji="山田",
+                firstNameKanji="太郎",
+                firstNameKana="タロウ",
                 birthEra="heisei",
                 birthYear="5",
                 birthMonth="3",
@@ -88,7 +101,7 @@ class TestFormData:
 
         errors = exc_info.value.errors()
         field_names = [e["loc"][0] for e in errors]
-        assert "nameKana" in field_names
+        assert "lastNameKana" in field_names
 
     def test_form_data_optional_fields(self):
         """オプションフィールドがNone許容"""
@@ -96,8 +109,10 @@ class TestFormData:
             applicantType="individual",
             corporationType=None,  # optional
             corporationName=None,  # optional
-            nameKana="テスト",
-            nameKanji="テスト",
+            lastNameKanji="テスト",
+            firstNameKanji="太郎",
+            lastNameKana="テスト",
+            firstNameKana="タロウ",
             birthEra="reiwa",
             birthYear="1",
             birthMonth="1",
@@ -114,21 +129,7 @@ class TestFormData:
             officeCity=None,  # optional
             officeStreet=None,  # optional
             officePhone=None,  # optional
-            managerNameKana=None,  # optional
-            managerNameKanji=None,  # optional
-            managerBirthEra=None,  # optional
-            managerBirthYear=None,  # optional
-            managerBirthMonth=None,  # optional
-            managerBirthDay=None,  # optional
-            managerPostalCode=None,  # optional
-            managerPrefecture=None,  # optional
-            managerCity=None,  # optional
-            managerStreet=None,  # optional
-            managerPhone=None,  # optional
             websiteUrl=None,  # optional
-            applicationYear="7",
-            applicationMonth="1",
-            applicationDay="1",
             submissionPrefecture="東京都",
         )
 
@@ -136,7 +137,6 @@ class TestFormData:
         assert data.corporationName is None
         assert data.postalCode is None
         assert data.websiteUrl is None
-        assert data.managerNameKana is None
 
     def test_form_data_corporation(self):
         """法人データの作成成功"""
@@ -144,8 +144,10 @@ class TestFormData:
             applicantType="corporation",
             corporationType="kabushiki",
             corporationName="株式会社テスト",
-            nameKana="ヤマダ タロウ",
-            nameKanji="山田 太郎",
+            lastNameKanji="山田",
+            firstNameKanji="太郎",
+            lastNameKana="ヤマダ",
+            firstNameKana="タロウ",
             birthEra="heisei",
             birthYear="5",
             birthMonth="3",
@@ -156,9 +158,6 @@ class TestFormData:
             phone="03-1234-5678",
             officeNameKana="カブシキガイシャテスト",
             officeNameKanji="株式会社テスト",
-            applicationYear="7",
-            applicationMonth="1",
-            applicationDay="1",
             submissionPrefecture="東京都",
         )
 
@@ -170,8 +169,10 @@ class TestFormData:
         """ホームページありのデータ作成成功"""
         data = FormData(
             applicantType="individual",
-            nameKana="テスト",
-            nameKanji="テスト",
+            lastNameKanji="テスト",
+            firstNameKanji="太郎",
+            lastNameKana="テスト",
+            firstNameKana="タロウ",
             birthEra="reiwa",
             birthYear="1",
             birthMonth="1",
@@ -184,9 +185,6 @@ class TestFormData:
             officeNameKanji="テスト",
             hasWebsite=True,
             websiteUrl="https://example.com",
-            applicationYear="7",
-            applicationMonth="1",
-            applicationDay="1",
             submissionPrefecture="東京都",
         )
 
@@ -197,8 +195,10 @@ class TestFormData:
         """管理者が申請者と異なる場合のデータ作成成功"""
         data = FormData(
             applicantType="individual",
-            nameKana="ヤマダ タロウ",
-            nameKanji="山田 太郎",
+            lastNameKanji="山田",
+            firstNameKanji="太郎",
+            lastNameKana="ヤマダ",
+            firstNameKana="タロウ",
             birthEra="heisei",
             birthYear="5",
             birthMonth="3",
@@ -210,8 +210,10 @@ class TestFormData:
             officeNameKana="ヤマダショウテン",
             officeNameKanji="山田商店",
             managerSameAsApplicant=False,
-            managerNameKana="スズキ ハナコ",
-            managerNameKanji="鈴木 花子",
+            managerLastNameKanji="鈴木",
+            managerFirstNameKanji="花子",
+            managerLastNameKana="スズキ",
+            managerFirstNameKana="ハナコ",
             managerBirthEra="showa",
             managerBirthYear="55",
             managerBirthMonth="7",
@@ -220,12 +222,38 @@ class TestFormData:
             managerCity="横浜市",
             managerStreet="4-5-6",
             managerPhone="045-123-4567",
-            applicationYear="7",
-            applicationMonth="1",
-            applicationDay="1",
             submissionPrefecture="東京都",
         )
 
         assert data.managerSameAsApplicant is False
-        assert data.managerNameKana == "スズキ ハナコ"
-        assert data.managerNameKanji == "鈴木 花子"
+        assert data.managerLastNameKana == "スズキ"
+        assert data.managerLastNameKanji == "鈴木"
+
+    def test_form_data_with_career_history(self):
+        """職歴付きのデータ作成成功"""
+        career_entries = [
+            CareerEntry(year="2020", month="4", content="株式会社テスト 入社"),
+            CareerEntry(year="2023", month="3", content="同社 退職"),
+        ]
+        data = FormData(
+            applicantType="individual",
+            lastNameKanji="テスト",
+            firstNameKanji="太郎",
+            lastNameKana="テスト",
+            firstNameKana="タロウ",
+            birthEra="reiwa",
+            birthYear="1",
+            birthMonth="1",
+            birthDay="1",
+            prefecture="東京都",
+            city="千代田区",
+            street="1-1",
+            phone="0312345678",
+            officeNameKana="テスト",
+            officeNameKanji="テスト",
+            submissionPrefecture="東京都",
+            careerHistory=career_entries,
+        )
+
+        assert len(data.careerHistory) == 2
+        assert data.careerHistory[0].content == "株式会社テスト 入社"

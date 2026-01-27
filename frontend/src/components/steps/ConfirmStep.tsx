@@ -1,5 +1,5 @@
 import { ERA_OPTIONS, CORPORATION_TYPES } from '../../lib/constants';
-import type { FormData } from '../../types/form';
+import type { FormData, CareerEntry } from '../../types/form';
 
 interface ConfirmStepProps {
   formData: FormData;
@@ -29,10 +29,16 @@ export function ConfirmStep({ formData }: ConfirmStepProps) {
   };
 
   // 氏名を結合して表示
-  const getFullName = (lastNameField: keyof FormData, firstNameField: keyof FormData) => {
-    const lastName = formData[lastNameField] || '';
-    const firstName = formData[firstNameField] || '';
+  const getFullName = (lastNameField: keyof FormData, firstNameField: keyof FormData): string => {
+    const lastName = (formData[lastNameField] as string) || '';
+    const firstName = (formData[firstNameField] as string) || '';
     return lastName && firstName ? `${lastName} ${firstName}` : lastName || firstName || '未入力';
+  };
+
+  // 職歴を表示用にフォーマット
+  const formatCareerEntry = (entry: CareerEntry) => {
+    const period = entry.year && entry.month ? `${entry.year}年${entry.month}月` : '';
+    return period ? `${period} ${entry.content}` : entry.content;
   };
 
   return (
@@ -73,6 +79,19 @@ export function ConfirmStep({ formData }: ConfirmStepProps) {
         </section>
 
         <section className="bg-gray-50 rounded-lg p-4">
+          <h3 className="font-bold text-gray-800 mb-3 border-b pb-2">職歴（申請者）</h3>
+          {formData.careerHistory.length > 0 ? (
+            <ul className="text-sm space-y-1">
+              {formData.careerHistory.map((entry, index) => (
+                <li key={index}>{formatCareerEntry(entry)}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-500">未入力</p>
+          )}
+        </section>
+
+        <section className="bg-gray-50 rounded-lg p-4">
           <h3 className="font-bold text-gray-800 mb-3 border-b pb-2">主たる営業所</h3>
           <dl className="grid grid-cols-2 gap-2 text-sm">
             <dt className="text-gray-600">名称（漢字）</dt>
@@ -91,14 +110,28 @@ export function ConfirmStep({ formData }: ConfirmStepProps) {
           {formData.managerSameAsApplicant ? (
             <p className="text-sm text-gray-600">申請者と同じ</p>
           ) : (
-            <dl className="grid grid-cols-2 gap-2 text-sm">
-              <dt className="text-gray-600">氏名（漢字）</dt>
-              <dd>{getFullName('managerLastNameKanji', 'managerFirstNameKanji')}</dd>
-              <dt className="text-gray-600">氏名（フリガナ）</dt>
-              <dd>{getFullName('managerLastNameKana', 'managerFirstNameKana')}</dd>
-              <dt className="text-gray-600">生年月日</dt>
-              <dd>{formatDate('managerBirth')}</dd>
-            </dl>
+            <>
+              <dl className="grid grid-cols-2 gap-2 text-sm">
+                <dt className="text-gray-600">氏名（漢字）</dt>
+                <dd>{getFullName('managerLastNameKanji', 'managerFirstNameKanji')}</dd>
+                <dt className="text-gray-600">氏名（フリガナ）</dt>
+                <dd>{getFullName('managerLastNameKana', 'managerFirstNameKana')}</dd>
+                <dt className="text-gray-600">生年月日</dt>
+                <dd>{formatDate('managerBirth')}</dd>
+              </dl>
+              <div className="mt-3 pt-3 border-t">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">職歴（管理者）</h4>
+                {formData.managerCareerHistory.length > 0 ? (
+                  <ul className="text-sm space-y-1">
+                    {formData.managerCareerHistory.map((entry, index) => (
+                      <li key={index}>{formatCareerEntry(entry)}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-500">未入力</p>
+                )}
+              </div>
+            </>
           )}
         </section>
 
@@ -121,6 +154,25 @@ export function ConfirmStep({ formData }: ConfirmStepProps) {
             <dt className="text-gray-600">提出先</dt>
             <dd>{formData.submissionPrefecture || '未入力'}公安委員会</dd>
           </dl>
+        </section>
+
+        <section className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+          <h3 className="font-bold text-blue-800 mb-3">ダウンロード内容</h3>
+          <p className="text-sm text-blue-700 mb-2">
+            以下の書類が1つのPDFファイルにまとめて出力されます：
+          </p>
+          <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+            <li>古物商許可申請書 その1〜4（4ページ）</li>
+            <li>誓約書（申請者用）</li>
+            <li>略歴書（申請者用）</li>
+            <li>誓約書（管理者用）</li>
+            {!formData.managerSameAsApplicant && (
+              <li>略歴書（管理者用）</li>
+            )}
+          </ul>
+          <p className="text-xs text-blue-600 mt-3">
+            ※署名日は空欄になっています。提出時に記入してください。
+          </p>
         </section>
 
       </div>

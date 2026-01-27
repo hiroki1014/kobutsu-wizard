@@ -17,8 +17,10 @@ def client():
 # 有効なフォームデータ（個人申請者）
 VALID_INDIVIDUAL_DATA = {
     "applicantType": "individual",
-    "nameKana": "ヤマダ タロウ",
-    "nameKanji": "山田 太郎",
+    "lastNameKanji": "山田",
+    "firstNameKanji": "太郎",
+    "lastNameKana": "ヤマダ",
+    "firstNameKana": "タロウ",
     "birthEra": "heisei",
     "birthYear": "5",
     "birthMonth": "3",
@@ -32,10 +34,6 @@ VALID_INDIVIDUAL_DATA = {
     "officeNameKanji": "山田商店",
     "managerSameAsApplicant": True,
     "hasWebsite": False,
-    "applicationEra": "reiwa",
-    "applicationYear": "7",
-    "applicationMonth": "1",
-    "applicationDay": "15",
     "submissionPrefecture": "東京都",
 }
 
@@ -65,8 +63,10 @@ VALID_DATA_WITHOUT_WEBSITE = {
 VALID_DATA_DIFFERENT_MANAGER = {
     **VALID_INDIVIDUAL_DATA,
     "managerSameAsApplicant": False,
-    "managerNameKana": "スズキ ハナコ",
-    "managerNameKanji": "鈴木 花子",
+    "managerLastNameKanji": "鈴木",
+    "managerFirstNameKanji": "花子",
+    "managerLastNameKana": "スズキ",
+    "managerFirstNameKana": "ハナコ",
     "managerBirthEra": "showa",
     "managerBirthYear": "55",
     "managerBirthMonth": "7",
@@ -103,16 +103,19 @@ class TestGeneratePdf:
     """PDF生成エンドポイントのテスト"""
 
     @pytest.fixture
-    def mock_template_exists(self):
+    def mock_templates_exist(self):
         """テンプレートファイルの存在をモック"""
         mock_path = MagicMock(spec=Path)
         mock_path.exists.return_value = True
-        with patch("app.main.TEMPLATE_PATH", mock_path):
+        with patch("app.main.TEMPLATE_PATH", mock_path), \
+             patch("app.main.SEIYAKU_KOJIN_PATH", mock_path), \
+             patch("app.main.SEIYAKU_KANRISHA_PATH", mock_path), \
+             patch("app.main.RYAKUREKI_PATH", mock_path):
             yield mock_path
 
-    def test_generate_pdf_success(self, client, mock_template_exists):
+    def test_generate_pdf_success(self, client, mock_templates_exist):
         """POST /api/generate-pdf が正常なデータでPDFを返す"""
-        with patch("app.main.generate_kobutsu_pdf") as mock_generate:
+        with patch("app.main.generate_full_application_pdf") as mock_generate:
             mock_generate.return_value = b"%PDF-1.4 test pdf content"
             response = client.post("/api/generate-pdf", json=VALID_INDIVIDUAL_DATA)
 
@@ -121,9 +124,9 @@ class TestGeneratePdf:
             assert "Content-Disposition" in response.headers
             mock_generate.assert_called_once()
 
-    def test_generate_pdf_individual(self, client, mock_template_exists):
+    def test_generate_pdf_individual(self, client, mock_templates_exist):
         """個人申請者でPDF生成成功"""
-        with patch("app.main.generate_kobutsu_pdf") as mock_generate:
+        with patch("app.main.generate_full_application_pdf") as mock_generate:
             mock_generate.return_value = b"%PDF-1.4 test pdf content"
             response = client.post("/api/generate-pdf", json=VALID_INDIVIDUAL_DATA)
 
@@ -131,9 +134,9 @@ class TestGeneratePdf:
             call_args = mock_generate.call_args[0][0]
             assert call_args.applicantType == "individual"
 
-    def test_generate_pdf_corporation(self, client, mock_template_exists):
+    def test_generate_pdf_corporation(self, client, mock_templates_exist):
         """法人申請者でPDF生成成功"""
-        with patch("app.main.generate_kobutsu_pdf") as mock_generate:
+        with patch("app.main.generate_full_application_pdf") as mock_generate:
             mock_generate.return_value = b"%PDF-1.4 test pdf content"
             response = client.post("/api/generate-pdf", json=VALID_CORPORATION_DATA)
 
@@ -143,9 +146,9 @@ class TestGeneratePdf:
             assert call_args.corporationType == "kabushiki"
             assert call_args.corporationName == "株式会社テスト"
 
-    def test_generate_pdf_with_website(self, client, mock_template_exists):
+    def test_generate_pdf_with_website(self, client, mock_templates_exist):
         """ホームページありでPDF生成成功"""
-        with patch("app.main.generate_kobutsu_pdf") as mock_generate:
+        with patch("app.main.generate_full_application_pdf") as mock_generate:
             mock_generate.return_value = b"%PDF-1.4 test pdf content"
             response = client.post("/api/generate-pdf", json=VALID_DATA_WITH_WEBSITE)
 
@@ -154,9 +157,9 @@ class TestGeneratePdf:
             assert call_args.hasWebsite is True
             assert call_args.websiteUrl == "https://example.com"
 
-    def test_generate_pdf_without_website(self, client, mock_template_exists):
+    def test_generate_pdf_without_website(self, client, mock_templates_exist):
         """ホームページなしでPDF生成成功"""
-        with patch("app.main.generate_kobutsu_pdf") as mock_generate:
+        with patch("app.main.generate_full_application_pdf") as mock_generate:
             mock_generate.return_value = b"%PDF-1.4 test pdf content"
             response = client.post("/api/generate-pdf", json=VALID_DATA_WITHOUT_WEBSITE)
 
@@ -164,21 +167,21 @@ class TestGeneratePdf:
             call_args = mock_generate.call_args[0][0]
             assert call_args.hasWebsite is False
 
-    def test_generate_pdf_different_manager(self, client, mock_template_exists):
+    def test_generate_pdf_different_manager(self, client, mock_templates_exist):
         """管理者が申請者と異なる場合"""
-        with patch("app.main.generate_kobutsu_pdf") as mock_generate:
+        with patch("app.main.generate_full_application_pdf") as mock_generate:
             mock_generate.return_value = b"%PDF-1.4 test pdf content"
             response = client.post("/api/generate-pdf", json=VALID_DATA_DIFFERENT_MANAGER)
 
             assert response.status_code == 200
             call_args = mock_generate.call_args[0][0]
             assert call_args.managerSameAsApplicant is False
-            assert call_args.managerNameKana == "スズキ ハナコ"
-            assert call_args.managerNameKanji == "鈴木 花子"
+            assert call_args.managerLastNameKana == "スズキ"
+            assert call_args.managerLastNameKanji == "鈴木"
 
-    def test_generate_pdf_different_office_address(self, client, mock_template_exists):
+    def test_generate_pdf_different_office_address(self, client, mock_templates_exist):
         """営業所住所が申請者住所と異なる場合"""
-        with patch("app.main.generate_kobutsu_pdf") as mock_generate:
+        with patch("app.main.generate_full_application_pdf") as mock_generate:
             mock_generate.return_value = b"%PDF-1.4 test pdf content"
             response = client.post("/api/generate-pdf", json=VALID_DATA_DIFFERENT_OFFICE)
 
@@ -192,8 +195,8 @@ class TestGeneratePdf:
         """必須フィールド欠落で422エラー"""
         invalid_data = {
             "applicantType": "individual",
-            # nameKana is missing
-            "nameKanji": "山田 太郎",
+            # lastNameKana is missing
+            "lastNameKanji": "山田",
         }
 
         response = client.post("/api/generate-pdf", json=invalid_data)
@@ -204,8 +207,8 @@ class TestGeneratePdf:
         """不正なデータ形式で422エラー"""
         invalid_data = {
             "applicantType": 123,  # should be string
-            "nameKana": "ヤマダ タロウ",
-            "nameKanji": "山田 太郎",
+            "lastNameKana": "ヤマダ",
+            "lastNameKanji": "山田",
         }
 
         response = client.post("/api/generate-pdf", json=invalid_data)

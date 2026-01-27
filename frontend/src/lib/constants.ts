@@ -26,6 +26,7 @@ export const CORPORATION_TYPES = [
 export const STEPS = [
   { id: 'applicant', title: '申請者情報' },
   { id: 'address', title: '住所' },
+  { id: 'career', title: '職歴' },
   { id: 'office', title: '営業所' },
   { id: 'manager', title: '管理者' },
   { id: 'website', title: 'ホームページ' },

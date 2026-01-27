@@ -2,6 +2,13 @@ from pydantic import BaseModel
 from typing import Optional
 
 
+class CareerEntry(BaseModel):
+    """職歴エントリ"""
+    year: str      # 年
+    month: str     # 月
+    content: str   # 内容
+
+
 class FormData(BaseModel):
     """古物商許可申請書のフォームデータ"""
 
@@ -75,6 +82,12 @@ class FormData(BaseModel):
 
     # 申請情報（申請日は削除）
     submissionPrefecture: str
+
+    # 申請者の職歴（最近5年間、最大7エントリ）
+    careerHistory: Optional[list[CareerEntry]] = None
+
+    # 管理者の職歴（申請者と異なる場合）
+    managerCareerHistory: Optional[list[CareerEntry]] = None
 
     @property
     def nameKanji(self) -> str:

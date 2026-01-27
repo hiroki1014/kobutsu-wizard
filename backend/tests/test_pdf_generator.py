@@ -115,8 +115,10 @@ class TestGeneratePdf:
         """有効なフォームデータを返すフィクスチャ"""
         return FormData(
             applicantType="individual",
-            nameKana="ヤマダ タロウ",
-            nameKanji="山田 太郎",
+            lastNameKanji="山田",
+            firstNameKanji="太郎",
+            lastNameKana="ヤマダ",
+            firstNameKana="タロウ",
             birthEra="heisei",
             birthYear="5",
             birthMonth="3",
@@ -130,10 +132,6 @@ class TestGeneratePdf:
             officeNameKanji="山田商店",
             managerSameAsApplicant=True,
             hasWebsite=False,
-            applicationEra="reiwa",
-            applicationYear="7",
-            applicationMonth="1",
-            applicationDay="15",
             submissionPrefecture="東京都",
         )
 

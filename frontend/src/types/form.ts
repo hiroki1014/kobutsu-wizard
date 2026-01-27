@@ -1,3 +1,9 @@
+export interface CareerEntry {
+  year: string;
+  month: string;
+  content: string;
+}
+
 export interface FormData {
   // 申請者種別
   applicantType: 'individual' | 'corporation';
@@ -69,6 +75,12 @@ export interface FormData {
 
   // 申請情報（申請日は削除）
   submissionPrefecture: string;
+
+  // 職歴（最近5年間、最大7エントリ）
+  careerHistory: CareerEntry[];
+
+  // 管理者の職歴（申請者と異なる場合）
+  managerCareerHistory: CareerEntry[];
 }
 
 export const initialFormData: FormData = {
@@ -134,6 +146,9 @@ export const initialFormData: FormData = {
   websiteUrl: '',
 
   submissionPrefecture: '',
+
+  careerHistory: [],
+  managerCareerHistory: [],
 };
 
 // テスト用のサンプルデータ（全フィールド入力）
@@ -200,4 +215,21 @@ export const testFormData: FormData = {
   websiteUrl: 'https://www.example-shop.co.jp',
 
   submissionPrefecture: '大阪府',
+
+  careerHistory: [
+    { year: '2015', month: '4', content: '○○大学 入学' },
+    { year: '2019', month: '3', content: '同大学 卒業' },
+    { year: '2019', month: '4', content: '株式会社○○商事 入社' },
+    { year: '2021', month: '9', content: '同社 退職' },
+    { year: '2021', month: '10', content: '△△株式会社 入社' },
+    { year: '2023', month: '3', content: '同社 退職' },
+  ],
+  managerCareerHistory: [
+    { year: '2010', month: '4', content: '□□専門学校 入学' },
+    { year: '2012', month: '3', content: '同校 卒業' },
+    { year: '2012', month: '4', content: '株式会社××商店 入社' },
+    { year: '2016', month: '6', content: '同社 退職' },
+    { year: '2016', month: '7', content: '◇◇株式会社 入社' },
+    { year: '2020', month: '12', content: '同社 退職' },
+  ],
 };

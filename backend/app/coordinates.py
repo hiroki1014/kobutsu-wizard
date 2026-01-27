@@ -203,3 +203,92 @@ WEBSITE_NOT_USE_CIRCLE = (340, convert_y(132), 355, convert_y(119))  # 2のみ
 # URL（送信元識別符号の入力欄）
 WEBSITE_URL_X = 72
 WEBSITE_URL_Y = convert_y(175)
+
+
+# ============================================
+# 誓約書（個人用・管理者用共通）
+# ============================================
+
+# 公安委員会名（都道府県）- 右揃え基準
+SEIYAKU_PREFECTURE_X = 105
+SEIYAKU_PREFECTURE_Y = convert_y(677)
+SEIYAKU_PREFECTURE_RIGHT_ALIGN = True
+
+# 年月日（署名日）
+SEIYAKU_DATE_YEAR_X = 405
+SEIYAKU_DATE_MONTH_X = 450
+SEIYAKU_DATE_DAY_X = 485
+SEIYAKU_DATE_Y = convert_y(720)
+
+# 住所
+SEIYAKU_ADDRESS_X = 220
+SEIYAKU_ADDRESS_Y = convert_y(735)
+
+# 氏名
+SEIYAKU_NAME_X = 220
+SEIYAKU_NAME_Y = convert_y(760)
+
+# 管理者用誓約書（2上）
+SEIYAKU_KANRI_PREFECTURE_Y = convert_y(675)
+SEIYAKU_KANRI_ADDRESS_Y = convert_y(733)
+SEIYAKU_KANRI_NAME_Y = convert_y(758)
+
+
+# ============================================
+# 略歴書
+# ============================================
+
+# ふりがな（35上）
+RYAKUREKI_KANA_X = 175
+RYAKUREKI_KANA_Y = convert_y(115)
+
+# 氏名（35上）
+RYAKUREKI_NAME_X = 175
+RYAKUREKI_NAME_Y = convert_y(145)
+
+# 生年月日の元号
+RYAKUREKI_ERA_POSITIONS = {
+    'meiji': (133, 148),
+    'taisho': (153, 168),
+    'showa': (173, 188),
+    'heisei': (193, 208),
+    'reiwa': (213, 228),
+}
+RYAKUREKI_ERA_CIRCLE_Y = (convert_y(212), convert_y(199))
+
+# 生年月日（年・月・日）- 年20右、月30右、日45右
+RYAKUREKI_BIRTH_YEAR_X = 252
+RYAKUREKI_BIRTH_MONTH_X = 312
+RYAKUREKI_BIRTH_DAY_X = 367
+RYAKUREKI_BIRTH_Y = convert_y(215)
+RYAKUREKI_BIRTH_CHAR_WIDTH = 11
+
+# 年齢（20右）
+RYAKUREKI_AGE_X = 432
+RYAKUREKI_AGE_Y = convert_y(215)
+
+# 住所（70上）
+RYAKUREKI_ADDRESS_X = 175
+RYAKUREKI_ADDRESS_Y = convert_y(180)
+
+# 職歴等（7行分）
+# 各行のY座標（期間欄と内容欄は同じY）- 5上
+RYAKUREKI_CAREER_START_Y = convert_y(305)  # 1行目
+RYAKUREKI_CAREER_LINE_HEIGHT = 50  # 行間
+
+# 期間（年・月）の位置 - 年70右、月70右
+RYAKUREKI_CAREER_YEAR_X = 165   # 年
+RYAKUREKI_CAREER_MONTH_X = 210  # 月
+
+# 内容の位置 - 50右
+RYAKUREKI_CAREER_CONTENT_X = 250
+
+# 署名欄
+RYAKUREKI_SIGN_DATE_YEAR_X = 290
+RYAKUREKI_SIGN_DATE_MONTH_X = 345
+RYAKUREKI_SIGN_DATE_DAY_X = 385
+RYAKUREKI_SIGN_DATE_Y = convert_y(540)
+
+# 署名（氏名）- 145下
+RYAKUREKI_SIGN_NAME_X = 330
+RYAKUREKI_SIGN_NAME_Y = convert_y(720)

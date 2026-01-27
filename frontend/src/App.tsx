@@ -3,6 +3,7 @@ import { ProgressBar } from './components/ProgressBar';
 import {
   ApplicantStep,
   AddressStep,
+  CareerStep,
   OfficeStep,
   ManagerStep,
   WebsiteStep,
@@ -12,7 +13,7 @@ import {
 import { Button } from './components/ui';
 import { STEPS } from './lib/constants';
 import { generatePdf } from './lib/api';
-import type { FormData } from './types/form';
+import type { FormData, CareerEntry } from './types/form';
 import { initialFormData, testFormData } from './types/form';
 
 export default function App() {
@@ -21,12 +22,12 @@ export default function App() {
 
   const loadTestData = () => {
     setFormData(testFormData);
-    setCurrentStep(6); // 確認画面に移動
+    setCurrentStep(7); // 確認画面に移動
   };
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const updateField = (field: keyof FormData, value: string | boolean) => {
+  const updateField = (field: keyof FormData, value: string | boolean | CareerEntry[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -52,7 +53,7 @@ export default function App() {
       const a = document.createElement('a');
       a.href = url;
       const fullName = `${formData.lastNameKanji}${formData.firstNameKanji}` || '申請者';
-      a.download = `古物商許可申請書_${fullName}.pdf`;
+      a.download = `古物商許可申請書一式_${fullName}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -71,14 +72,16 @@ export default function App() {
       case 1:
         return <AddressStep formData={formData} updateField={updateField} />;
       case 2:
-        return <OfficeStep formData={formData} updateField={updateField} />;
+        return <CareerStep formData={formData} updateField={updateField} />;
       case 3:
-        return <ManagerStep formData={formData} updateField={updateField} />;
+        return <OfficeStep formData={formData} updateField={updateField} />;
       case 4:
-        return <WebsiteStep formData={formData} updateField={updateField} />;
+        return <ManagerStep formData={formData} updateField={updateField} />;
       case 5:
-        return <SubmissionStep formData={formData} updateField={updateField} />;
+        return <WebsiteStep formData={formData} updateField={updateField} />;
       case 6:
+        return <SubmissionStep formData={formData} updateField={updateField} />;
+      case 7:
         return <ConfirmStep formData={formData} />;
       default:
         return null;
