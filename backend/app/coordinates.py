@@ -197,12 +197,22 @@ MANAGER_PHONE_Y = convert_y(531)  # 1下
 
 # ホームページ利用（真円で番号だけ）
 # 実際の位置: "1.用いる 2.用いない" x=275.3-419.8, y=121.0-130.4
-WEBSITE_USE_CIRCLE = (273, convert_y(131), 288, convert_y(118))   # 1のみ
+WEBSITE_USE_CIRCLE = (283, convert_y(132), 298, convert_y(119))   # 1のみ（10右、用いないと同じ高さ）
 WEBSITE_NOT_USE_CIRCLE = (340, convert_y(132), 355, convert_y(119))  # 2のみ
 
 # URL（送信元識別符号の入力欄）
 WEBSITE_URL_X = 72
 WEBSITE_URL_Y = convert_y(175)
+
+# URL記入欄（1文字ずつ+フリガナ）
+URL_GRID_START_X = 72 + 11    # 左端 + 11右
+URL_GRID_START_Y = convert_y(175 + 10)  # 最初の行のY座標（文字本体）+ 10下
+URL_CHAR_WIDTH = 35           # 1マスの横幅
+URL_FURIGANA_OFFSET = -15     # フリガナのYオフセット（文字より15下）
+URL_LINE_HEIGHT = 33.5        # 行間（文字22 + フリガナ12 - 0.5）
+URL_MAX_CHARS_PER_LINE = 14   # 1行あたり最大文字数（幅34で調整）
+URL_FURIGANA_FONT_SIZE = 6    # フリガナのフォントサイズ
+URL_CHAR_FONT_SIZE = 10       # URL文字のフォントサイズ
 
 
 # ============================================

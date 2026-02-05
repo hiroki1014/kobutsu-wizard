@@ -123,6 +123,107 @@ def draw_double_line(c: canvas.Canvas, x_start: float, x_end: float, y: float,
     c.line(x_start, y - gap, x_end, y - gap)
 
 
+# ============================================
+# URL描画用定数・関数
+# ============================================
+
+# フリガナマッピングテーブル
+URL_FURIGANA_MAP = {
+    # 英小文字
+    'a': 'ｴｰ', 'b': 'ﾋﾞｰ', 'c': 'ｼｰ', 'd': 'ﾃﾞｨｰ', 'e': 'ｲｰ',
+    'f': 'ｴﾌ', 'g': 'ｼﾞｰ', 'h': 'ｴｲﾁ', 'i': 'ｱｲ', 'j': 'ｼﾞｪｲ',
+    'k': 'ｹｲ', 'l': 'ｴﾙ', 'm': 'ｴﾑ', 'n': 'ｴﾇ', 'o': 'ｵｰ',
+    'p': 'ﾋﾟｰ', 'q': 'ｷｭｰ', 'r': 'ｱｰﾙ', 's': 'ｴｽ', 't': 'ﾃｨｰ',
+    'u': 'ﾕｰ', 'v': 'ﾌﾞｲ', 'w': 'ﾀﾞﾌﾞﾘｭｰ', 'x': 'ｴｯｸｽ', 'y': 'ﾜｲ', 'z': 'ｾﾞｯﾄ',
+    # 記号
+    ':': 'ｺﾛﾝ', '/': 'ｽﾗｯｼｭ', '.': 'ﾄﾞｯﾄ', '-': 'ﾊｲﾌﾝ',
+    '_': 'ｱﾝﾀﾞｰﾊﾞｰ', '~': 'ﾁﾙﾀﾞ', '@': 'ｱｯﾄ', '#': 'ｼｬｰﾌﾟ',
+    '?': 'ﾊﾃﾅ', '=': 'ｲｺｰﾙ', '&': 'ｱﾝﾄﾞ', '%': 'ﾊﾟｰｾﾝﾄ',
+    # 数字
+    '0': 'ｾﾞﾛ', '1': 'ｲﾁ', '2': 'ﾆ', '3': 'ｻﾝ', '4': 'ﾖﾝ',
+    '5': 'ｺﾞ', '6': 'ﾛｸ', '7': 'ﾅﾅ', '8': 'ﾊﾁ', '9': 'ｷｭｳ',
+}
+
+def draw_circled_number(c: canvas.Canvas, char: str, x: float, y: float,
+                        font_size: float = 10, circle_radius: float = 6):
+    """数字を丸で囲んで描画
+
+    Args:
+        c: canvas object
+        char: 数字文字（'0'-'9'）
+        x: X座標
+        y: Y座標
+        font_size: 数字のフォントサイズ
+        circle_radius: 丸の半径
+    """
+    # 丸を描画（数字の中央に配置、1上0.5左）
+    cx = x + font_size * 0.3 - 0.5  # 数字の中央X - 0.5左
+    cy = y + font_size * 0.3 + 1  # 数字の中央Y + 1上
+    c.circle(cx, cy, circle_radius, stroke=1, fill=0)
+
+    # 数字を描画
+    c.setFont('IPAGothic', font_size)
+    c.drawString(x, y, char)
+
+
+def get_url_furigana(char: str) -> str:
+    """文字に対応するフリガナを取得"""
+    # 小文字に変換して検索
+    lower_char = char.lower()
+    return URL_FURIGANA_MAP.get(lower_char, '')
+
+
+def draw_url_with_furigana(c: canvas.Canvas, url: str, start_x: float, start_y: float,
+                           char_width: float, furigana_offset_y: float,
+                           max_chars_per_line: int, line_height: float,
+                           char_font_size: float = 10, furigana_font_size: float = 6):
+    """URLを1文字ずつフリガナ付きで描画
+
+    Args:
+        c: canvas object
+        url: URL文字列
+        start_x: 開始X座標
+        start_y: 開始Y座標（文字本体の位置）
+        char_width: 1文字の幅
+        furigana_offset_y: フリガナのY座標オフセット（文字本体からの距離、負の値で下に）
+        max_chars_per_line: 1行あたり最大文字数
+        line_height: 行間
+        char_font_size: URL文字のフォントサイズ
+        furigana_font_size: フリガナのフォントサイズ
+    """
+    col = 0
+    row = 0
+
+    for char in url:
+        # 改行チェック
+        if col >= max_chars_per_line:
+            col = 0
+            row += 1
+
+        x = start_x + (col * char_width)
+        y = start_y - (row * line_height)
+
+        # URL文字を描画
+        if char.isdigit():
+            # 数字は丸で囲んで描画
+            draw_circled_number(c, char, x, y, char_font_size)
+        else:
+            c.setFont('IPAGothic', char_font_size)
+            c.drawString(x, y, char)
+
+        # フリガナを描画（URL文字の中央に揃える）
+        furigana = get_url_furigana(char)
+        if furigana:
+            c.setFont('IPAGothic', furigana_font_size)
+            # URL文字の中央を基準に、フリガナ幅の半分だけ左にオフセット
+            char_center_x = x + char_font_size * 0.3  # 文字の中央（おおよそ）
+            furigana_width = len(furigana) * furigana_font_size * 0.5  # 半角カナの幅
+            furigana_x = char_center_x - furigana_width / 2
+            c.drawString(furigana_x, y + furigana_offset_y, furigana)
+
+        col += 1
+
+
 def draw_dot_grid(c: canvas.Canvas, interval: float = 10):
     """全面ドットグリッドを描画（テスト用）"""
     width, height = A4  # 595.276 x 841.890
@@ -375,8 +476,20 @@ def generate_kobutsu_pdf(data: FormData, template_path: str) -> bytes:
 
     if data.hasWebsite:
         draw_circle(c, *coord.WEBSITE_USE_CIRCLE)
-        # TODO: URL描画は後で調整
-        # c.drawString(coord.WEBSITE_URL_X, coord.WEBSITE_URL_Y, data.websiteUrl or '')
+        # URL描画（1文字ずつフリガナ付き）
+        if data.websiteUrl:
+            draw_url_with_furigana(
+                c,
+                url=data.websiteUrl,
+                start_x=coord.URL_GRID_START_X,
+                start_y=coord.URL_GRID_START_Y,
+                char_width=coord.URL_CHAR_WIDTH,
+                furigana_offset_y=coord.URL_FURIGANA_OFFSET,
+                max_chars_per_line=coord.URL_MAX_CHARS_PER_LINE,
+                line_height=coord.URL_LINE_HEIGHT,
+                char_font_size=coord.URL_CHAR_FONT_SIZE,
+                furigana_font_size=coord.URL_FURIGANA_FONT_SIZE
+            )
     else:
         draw_circle(c, *coord.WEBSITE_NOT_USE_CIRCLE)
 
@@ -886,6 +999,21 @@ def generate_test_pdf(template_path: str) -> bytes:
     # ホームページ: 両方○（位置確認用）
     draw_circle(c, *coord.WEBSITE_USE_CIRCLE)
     draw_circle(c, *coord.WEBSITE_NOT_USE_CIRCLE)
+
+    # テスト用URL（全文字網羅）
+    test_url = "https://abcdefghijklmnopqrstuvwxyz.jp/0123456789-_~.test"
+    draw_url_with_furigana(
+        c,
+        url=test_url,
+        start_x=coord.URL_GRID_START_X,
+        start_y=coord.URL_GRID_START_Y,
+        char_width=coord.URL_CHAR_WIDTH,
+        furigana_offset_y=coord.URL_FURIGANA_OFFSET,
+        max_chars_per_line=coord.URL_MAX_CHARS_PER_LINE,
+        line_height=coord.URL_LINE_HEIGHT,
+        char_font_size=coord.URL_CHAR_FONT_SIZE,
+        furigana_font_size=coord.URL_FURIGANA_FONT_SIZE
+    )
 
     c.showPage()
 
