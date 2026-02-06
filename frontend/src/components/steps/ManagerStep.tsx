@@ -122,6 +122,9 @@ export function ManagerStep({ formData, updateField }: ManagerStepProps) {
           </div>
 
           <div className="mt-4">
+            <p className="text-sm text-amber-700 bg-amber-50 border-l-4 border-amber-400 p-3 mb-4">
+              住民票に記載されている通りの表記で入力してください
+            </p>
             <Input
               label="郵便番号"
               placeholder="123-4567"
